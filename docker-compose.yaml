@@ -1,0 +1,25 @@
+version: "3"
+services:
+  edgedb:
+    image: edgedb/edgedb
+    env_file:
+      - vars.env
+    volumes:
+      - "./dbschema:/dbschema"
+      - "edgedb-data:/var/lib/edgedb/data"
+    ports:
+      - "5657:5657"
+
+  piggy-bank:
+    image: piggy-bank:latest
+    env_file:
+      - vars.env
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: on-failure
+    depends_on:
+      - edgedb
+
+volumes:
+  edgedb-data: {}
