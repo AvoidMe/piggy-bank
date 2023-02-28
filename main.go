@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
 	checkParser "github.com/AvoidMe/piggy-bank/src/check_parser"
+	textParser "github.com/AvoidMe/piggy-bank/src/text_parser"
 	"github.com/edgedb/edgedb-go"
 	"github.com/google/uuid"
 	telebot "gopkg.in/telebot.v3"
@@ -59,12 +61,46 @@ func getDB() (*edgedb.Client, error) {
 }
 
 func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
+	ctx := context.Background()
 	response, err := checkParser.MERequestPaymentInfo(message)
 	if err != nil {
+		if _, ok := err.(*url.Error); ok {
+			// probably something inserted by hand
+			log.Default().Printf("[%s] Message (%s) should be parsed as text", messageID, message)
+			ans, err := textParser.Parse(message)
+			if err != nil {
+				log.Default().Printf("Error processing message (%s): %s", messageID, err.Error())
+				return
+			}
+			var inserted struct{ id edgedb.UUID }
+			err = db.QuerySingle(
+				ctx,
+				`
+				insert HandInvoice {
+					message := (
+						select Message filter .id = <uuid>$0
+					),
+					total := <float64>$1,
+					comment  := <str>$2
+				};
+				`,
+				&inserted,
+				messageID,
+				ans.Amount,
+				ans.Reason,
+			)
+			if err != nil {
+				log.Default().Printf(
+					"Error inserting results to database (%s): %s",
+					messageID,
+					err.Error(),
+				)
+			}
+			return
+		}
 		log.Default().Printf("Error processing message (%s): %s", messageID, err.Error())
 		return
 	}
-	ctx := context.Background()
 	var inserted struct{ id edgedb.UUID }
 	raw, err := json.Marshal(response)
 	if err != nil {

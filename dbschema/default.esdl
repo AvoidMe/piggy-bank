@@ -27,4 +27,10 @@ module default {
 
     required link     invoice  -> Invoice;
   }
+
+  type HandInvoice {
+    required link   message   -> Message;
+    required property total   -> float64;
+    required property comment -> str;
+  }
 };
