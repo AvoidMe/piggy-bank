@@ -1,14 +1,14 @@
 version: "3"
 services:
-  edgedb:
-    image: edgedb/edgedb
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
     env_file:
       - vars.env
     volumes:
-      - "./dbschema:/dbschema"
-      - "edgedb-data:/var/lib/edgedb/data"
+      - "mongodb-data:/data/db"
+      - "./mongo_password:/run/secrets/mongodb-password"
     ports:
-      - "5657:5657"
+      - "27017:27017"
 
   piggy-bank:
     image: piggy-bank:latest
@@ -19,7 +19,7 @@ services:
       context: .
     restart: on-failure
     depends_on:
-      - edgedb
+      - mongodb
 
 volumes:
-  edgedb-data: {}
+  mongodb-data: {}

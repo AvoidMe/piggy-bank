@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,9 +9,10 @@ import (
 	"time"
 
 	checkParser "github.com/AvoidMe/piggy-bank/src/check_parser"
+	piggyDB "github.com/AvoidMe/piggy-bank/src/db"
 	textParser "github.com/AvoidMe/piggy-bank/src/text_parser"
-	"github.com/edgedb/edgedb-go"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	telebot "gopkg.in/telebot.v3"
 )
 
@@ -47,21 +47,7 @@ func loggerMiddleware() telebot.MiddlewareFunc {
 	}
 }
 
-func getDB() (*edgedb.Client, error) {
-	ctx := context.Background()
-	return edgedb.CreateClient(
-		ctx,
-		edgedb.Options{
-			Concurrency: 4,
-			TLSOptions: edgedb.TLSOptions{
-				SecurityMode: edgedb.TLSModeInsecure,
-			},
-		},
-	)
-}
-
-func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
-	ctx := context.Background()
+func processMessage(db *piggyDB.DBConnection, message string, messageID primitive.ObjectID) {
 	response, err := checkParser.MERequestPaymentInfo(message)
 	if err != nil {
 		if _, ok := err.(*url.Error); ok {
@@ -72,23 +58,7 @@ func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
 				log.Default().Printf("Error processing message (%s): %s", messageID, err.Error())
 				return
 			}
-			var inserted struct{ id edgedb.UUID }
-			err = db.QuerySingle(
-				ctx,
-				`
-				insert HandInvoice {
-					message := (
-						select Message filter .id = <uuid>$0
-					),
-					total := <float64>$1,
-					comment  := <str>$2
-				};
-				`,
-				&inserted,
-				messageID,
-				ans.Amount,
-				ans.Reason,
-			)
+			err = db.InsertHandInvoice(messageID, ans.Amount, ans.Reason)
 			if err != nil {
 				log.Default().Printf(
 					"Error inserting results to database (%s): %s",
@@ -101,8 +71,13 @@ func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
 		log.Default().Printf("Error processing message (%s): %s", messageID, err.Error())
 		return
 	}
-	var inserted struct{ id edgedb.UUID }
 	raw, err := json.Marshal(response)
+	if err != nil {
+		log.Default().Printf("Error conversion response to json (%s): %s", messageID, err.Error())
+		return
+	}
+	rawJson := map[any]any{}
+	err = json.Unmarshal(raw, &rawJson)
 	if err != nil {
 		log.Default().Printf("Error conversion response to json (%s): %s", messageID, err.Error())
 		return
@@ -112,22 +87,7 @@ func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
 		log.Default().Printf("Error extracting date (%s): %s", messageID, err.Error())
 		return
 	}
-	err = db.QuerySingle(ctx, `
-			insert Invoice {
-				message := (
-					select Message filter .id = <uuid>$0
-				),
-				total := <float64>$1,
-				date  := <datetime>$2,
-				raw   := <json>$3
-			};
-		`,
-		&inserted,
-		messageID,
-		response.Total(),
-		date,
-		raw,
-	)
+	invoiceID, err := db.InsertInvoice(messageID, response.Total(), date, rawJson)
 	if err != nil {
 		log.Default().Printf(
 			"Error inserting results to database (%s): %s",
@@ -136,45 +96,45 @@ func processMessage(message string, messageID edgedb.UUID, db *edgedb.Client) {
 		)
 		return
 	}
-	// TODO: bulk insert of something
+	items := []any{}
 	for _, item := range response.Items {
-		var insertedItem struct{ id edgedb.UUID }
-		err = db.QuerySingle(ctx, `
-				insert InvoiceItem {
-					invoice := (
-						select Invoice filter .id = <uuid>$0
-					),
-					name := <str>$1,
-					price := <float64>$2,
-					quantity := <int64>$3
-				};
-			`,
-			&insertedItem,
-			inserted.id,
-			item.Name,
-			item.PriceAfterVat,
-			int64(item.Quantity),
+		items = append(items, piggyDB.InvoiceItem{
+			InvoiceID: *invoiceID,
+			Name:      item.Name,
+			Price:     item.PriceAfterVat,
+			Quantity:  int64(item.Quantity),
+		})
+	}
+	db.InsertInvoiceItems(items)
+	if err != nil {
+		log.Default().Printf(
+			"Error inserting results to database (%s): %s",
+			messageID,
+			err.Error(),
 		)
-		if err != nil {
-			log.Default().Printf(
-				"Error inserting results to database (%s): %s",
-				messageID,
-				err.Error(),
-			)
-			return
-		}
 	}
 	log.Default().Printf("Successfully processed message (%s)", messageID)
 }
 
 func main() {
 	// init db
-	db, err := getDB()
+	db, err := piggyDB.NewConnection()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	defer db.Close()
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	err = db.RunMigrations()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	// init bot
 	pref := telebot.Settings{
@@ -194,35 +154,22 @@ func main() {
 
 	// handlers
 	bot.Handle(telebot.OnText, func(c telebot.Context) error {
-		ctx := context.Background()
-		var inserted struct{ id edgedb.UUID }
-		// TODO: update username if changed
-		err = db.QuerySingle(ctx, `
-				insert Message {
-					user := (
-						insert User {
-							username := <str>$0,
-							chat_id := <int64>$1
-						}
-						unless conflict on .chat_id else User
-					),
-					text := <str>$2,
-					date := <datetime>$3
-				};
-			`,
-			&inserted,
-			// user
-			c.Sender().Username,
-			c.Sender().ID,
-			// message
-			c.Text(),
-			time.Now(),
-		)
+
+		// find user
+		user, err := db.FindOrInsertUser(c.Sender().Username, c.Sender().ID)
 		if err != nil {
 			return c.Send(err.Error())
 		}
-		go processMessage(c.Text(), inserted.id, db)
-		return c.Send("Got you, will process that check a bit later!")
+
+		// insert raw message
+		insertedID, err := db.InsertMessage(user.ID, c.Text())
+		if err != nil {
+			return c.Send(err.Error())
+		}
+
+		// advanced message processing
+		go processMessage(db, c.Text(), *insertedID)
+		return c.Send("Got you, will process that a bit later!")
 	})
 
 	// bot started
