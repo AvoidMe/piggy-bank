@@ -91,10 +91,10 @@ func (this *DBConnection) FindOrInsertUser(username string, chatId int64) (*User
 func (this *DBConnection) InsertMessage(userID primitive.ObjectID, text string) (*primitive.ObjectID, error) {
 	result, err := this.messages.InsertOne(
 		context.TODO(),
-		bson.D{
-			{Key: "user_id", Value: userID},
-			{Key: "text", Value: text},
-			{Key: "date", Value: time.Now()},
+		Message{
+			UserID: userID,
+			Text:   text,
+			Date:   primitive.DateTime(time.Now().Unix()),
 		},
 	)
 	if err != nil {

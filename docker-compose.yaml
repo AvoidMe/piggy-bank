@@ -6,7 +6,6 @@ services:
       - vars.env
     volumes:
       - "mongodb-data:/data/db"
-      - "./mongo_password:/run/secrets/mongodb-password"
     ports:
       - "27017:27017"
 
