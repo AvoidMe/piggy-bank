@@ -31,6 +31,7 @@ services:
     volumes:
       - ./grafana/custom.ini:/etc/grafana/custom.ini
       - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/plugins:/var/lib/grafana/plugins
       - type: bind
         source: ./grafana/dashboard.json
         target: /var/lib/grafana/dashboards/curity/idsvr-dashboard.json
