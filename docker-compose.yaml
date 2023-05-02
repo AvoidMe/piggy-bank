@@ -21,5 +21,21 @@ services:
     depends_on:
       - edgedb
 
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_PATHS_CONFIG=/etc/grafana/custom.ini
+    volumes:
+      - ./grafana/custom.ini:/etc/grafana/custom.ini
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/plugins:/var/lib/grafana/plugins
+      - type: bind
+        source: ./grafana/dashboard.json
+        target: /var/lib/grafana/dashboards/curity/idsvr-dashboard.json
+
+
 volumes:
   edgedb-data: {}

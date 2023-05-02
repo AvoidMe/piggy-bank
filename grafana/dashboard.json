@@ -1,0 +1,456 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "panels": [],
+      "title": "Row title",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "SELECT Invoice { time := .date, value := .total };\nSELECT HandInvoice { time := .message.date, value := .total };",
+          "refId": "A"
+        }
+      ],
+      "title": "Panel Title",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "titleSize": 100
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "SELECT Invoice { time := .date, value := .total } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000);\nSELECT HandInvoice { time := .message.date, value := .total } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000);",
+          "refId": "A"
+        }
+      ],
+      "title": "Total",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "titleSize": 100
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "with\n    current_month := datetime_current() - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'day')-1) ++ ' day')  - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'hour')) ++ ' hours'),\nSELECT Invoice { time := .date, value := .total } filter .time >= current_month;\nwith\n    current_month := datetime_current() - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'day')-1) ++ ' day')  - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'hour')) ++ ' hours'),\nSELECT HandInvoice { time := .message.date, value := .total } filter .time >= current_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Current month",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "with\n    current_month := datetime_current() - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'day')-1) ++ ' day')  - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'hour')) ++ ' hours'),\n    previous_month := current_month - <cal::relative_duration>('1 month')\nSELECT Invoice { time := .date, value := .total } filter .time >= previous_month and .time <= current_month;\nwith\n    current_month := datetime_current() - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'day')-1) ++ ' day')  - <cal::relative_duration>(<str>(datetime_get(datetime_current(), 'hour')) ++ ' hours'),\n    previous_month := current_month - <cal::relative_duration>('1 month')\nSELECT HandInvoice { time := .message.date, value := .total } filter .time >= previous_month and .time <= current_month;",
+          "refId": "A"
+        }
+      ],
+      "title": "Previous month",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "titleSize": 100
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "SELECT Invoice { time := .date, value := .total, user := .message.user.username } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000) and .user = 'Avoid_me';\nSELECT HandInvoice { time := .message.date, value := .total, user := .message.user.username } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000) and .user = 'Avoid_me';",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Slava",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "washed-edgedb-datasource",
+        "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "titleSize": 100
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "washed-edgedb-datasource",
+            "uid": "abd1c33d-26a6-4c97-a86a-f4d3466403a7"
+          },
+          "queryText": "SELECT Invoice { time := .date, value := .total, user := .message.user.username } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000) and .user = 'vanessarish';\nSELECT HandInvoice { time := .message.date, value := .total, user := .message.user.username } filter .time >= to_datetime($__from / 1000) and .time <= to_datetime($__to / 1000) and .user = 'vanessarish';",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Mawa",
+      "transformations": [],
+      "type": "stat"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2023-02-03T02:32:08.926Z",
+    "to": "2023-05-02T12:59:01.542Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "All-time expences",
+  "uid": "a6ed5565-8574-4a12-be0f-66054cd6fa8e",
+  "version": 2,
+  "weekStart": ""
+}
