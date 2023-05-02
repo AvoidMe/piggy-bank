@@ -34,7 +34,7 @@ services:
       - ./grafana/plugins:/var/lib/grafana/plugins
       - type: bind
         source: ./grafana/dashboard.json
-        target: /var/lib/grafana/dashboards/curity/idsvr-dashboard.json
+        target: /var/lib/grafana/dashboards/avoid/avoid.json
 
 
 volumes:
